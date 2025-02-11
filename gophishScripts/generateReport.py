@@ -3,6 +3,7 @@ import json
 from docx import Document
 import urllib3
 from datetime import datetime
+import getModlishkaCreds
 
 #Suppress InsecureRequestWarnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -71,13 +72,15 @@ if __name__ == "__main__":
     API_KEY = input("Enter your GoPhish API key: ")
 
     # GoPhish server URL
-    SERVER_URL = "https://localhost:3333"
+    SERVER_URL = "http://localhost:3333"
 
     # Validate inputs
     if not API_KEY or not SERVER_URL:
         print("API key and server URL are required.")
         exit(1)
 
+    uuidList = getModlishkaCreds.read_redis_db("control_plugin_data.db")
+    print(f"uuid list is {uuidList}")
 
     campaigns = make_request("/api/campaigns")
 
@@ -111,12 +114,18 @@ if __name__ == "__main__":
         for result in results['results']:
             if result['status'] in ['Clicked Link', 'Email Opened', 'Submitted Data']:
                 # Extract the desired fields
+                if result['id'] in uuidList:
+                    print(f"user {result['id']} submitted data! adding to report. They're in trouble!")
+                    status = 'Submitted Data'
+                else:
+                    status = result['status']
                 extracted_data = {
                     'email': result['email'],
-                    'status': result['status'],
+                    'status': status,
                     'send_date': result['send_date'],
                     'modified_date': result['modified_date']
                 }
                 filtered_results.append(extracted_data)
         
         generate_word_report(filtered_results, campaign_name)
+
