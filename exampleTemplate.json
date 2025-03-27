@@ -1,0 +1,7 @@
+{
+    "name": "Template Name 7",
+    "subject": "Template Email Subject",
+    "text": "Some Text",
+    "html": "<html><body><h1>Some HTML</h1></body></html>"
+}
+
